@@ -1,14 +1,14 @@
-import React, { Component } from 'react';
-import './style.scss';
+import React, { useState } from 'react';
+import { Icon } from 'antd';
+import Toolbar from './components/Toolbar';
+import './index.scss';
 
-export default class extends Component {
-  componentDidMount() {
-  }
-  render() {
-    return (
-      <div>
-        Hello World
-      </div>
-    );
-  }
+export default () => {
+
+  return (
+    <div className="container">
+      <Toolbar />
+      <div id="editor" contenteditable="true"></div>
+    </div>
+  );
 }

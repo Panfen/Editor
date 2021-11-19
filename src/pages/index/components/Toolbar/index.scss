@@ -1,0 +1,13 @@
+.toolbar-container {
+	display: flex;
+	padding: 10px;
+	border-bottom: 1px solid #f0f0f0;
+	.group {
+		border-right: 1px solid #f0f0f0;
+		.anticon {
+			cursor: pointer;
+			display: inline-block;
+			padding: 4px 10px;
+		}
+	}
+}

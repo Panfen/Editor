@@ -2,7 +2,8 @@ import { observable, action } from 'mobx';
 import { hashHistory } from 'react-router';
 
 class LayoutStore {
-  namespace = 'layoutStore'
+
+  namespace = 'layoutStore';
   @observable values = {
     key: '',
     kk: hashHistory.getCurrentLocation().pathname,
