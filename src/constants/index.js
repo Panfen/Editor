@@ -1,3 +1,5 @@
+
+// 工具栏
 export const tools = [
 	{
 		id: 0,
@@ -47,6 +49,11 @@ export const tools = [
 				key: 'underline',
 				type: 'icon'
 			},
+			{
+				title: '行高',
+				key: 'line-height',
+				type: 'icon'
+			},
 		]
 	},
 	{
@@ -68,5 +75,42 @@ export const tools = [
 				type: 'icon'
 			},
 		]
+	},
+	{
+		id: 4,
+		children: [
+			{
+				title: '有序列表',
+				key: 'ordered-list',
+				type: 'icon'
+			},
+			{
+				title: '无须列表',
+				key: 'unordered-list',
+				type: 'icon'
+			},
+		]
 	}
 ];
+
+// 初始化数据
+export const initData = {
+	type: 'document',
+	nodes: [
+		{
+			type: 'paragraph',
+			segments: [
+				{
+					text: 'abc',
+					style: {
+						fontWeight: 'bold',
+						color: 'red'
+					}
+				}
+			],
+			style: {
+				textAlign: 'center'
+			}
+		}
+	]
+}
