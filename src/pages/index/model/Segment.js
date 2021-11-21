@@ -17,4 +17,44 @@ export default class Segment extends Node {
 		return new Segment(id, text, style);
 	}
 
+	insertText(offset, text) {
+		if (offset < 0 || offset > this.text.length || !text) {
+			return;
+		}
+		this.text = this.text.slice(0, offset) + text + this.text.slice(offset);
+	}
+
+	deleteText(offset, length) {
+		if (offset < 0 || offset + length > this.text.length || length === 0) {
+			return;
+		}
+		this.text = this.text.slice(0, offset) + this.text.slice(offset + length);
+	}
+
+	split(index) {
+		const before = this.text.slice(0, index);
+		const after = this.text.slice(index);
+		this.text = before;
+		return [
+			this,
+			Segment.create({
+				text: after,
+				style: this.style
+			})
+		];
+	}
+
+	addStyle(name, value) {
+		if (!name) {
+			return
+		}
+		if (!value) {
+			delete this.style[name]
+		}
+		this.style = {
+			...this.style,
+			[name]: value
+		}
+	}
+
 }

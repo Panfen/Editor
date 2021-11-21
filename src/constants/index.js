@@ -103,13 +103,20 @@ export const initData = {
 				{
 					text: 'abc',
 					style: {
-						fontWeight: 'bold',
+						// fontWeight: 'bold',
 						color: 'red'
+					}
+				},
+				{
+					text: 'def',
+					style: {
+						// fontWeight: 'bold',
+						color: 'green'
 					}
 				}
 			],
 			style: {
-				textAlign: 'center'
+				// textAlign: 'center'
 			}
 		}
 	]
