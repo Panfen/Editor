@@ -35,9 +35,17 @@ export default class Document extends Node {
 	addInlineStyle(startId, startOffset, endId, endOffset, name, value) {
 		const nodes = this.findSegmentsByStartAndEnd(startId, endId);
 
-		console.log(nodes)
 		if (nodes.length < 1) {
 			return [startId, startOffset, endId, endOffset];
+		}
+
+		if (nodes.length === 1) {
+			const segment = this.findNodeById(nodes[0].id);
+			const [a, b, c] = segment.splitByTwo(startOffset, endOffset);
+			b.addStyle(name, value);
+			const paragraph = this.findParentNodeById(segment.id);
+			paragraph.segments = [a, b, c];
+			return;
 		}
 
 		// 拆分第一个segment

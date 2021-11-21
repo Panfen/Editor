@@ -31,6 +31,9 @@ export default class Segment extends Node {
 		this.text = this.text.slice(0, offset) + this.text.slice(offset + length);
 	}
 
+	/**
+	 * 2分
+	 */ 
 	split(index) {
 		const before = this.text.slice(0, index);
 		const after = this.text.slice(index);
@@ -39,6 +42,27 @@ export default class Segment extends Node {
 			this,
 			Segment.create({
 				text: after,
+				style: this.style
+			})
+		];
+	}
+
+	/**
+	 * 3分
+	 */ 
+	splitByTwo(index1, index2) {
+		const a = this.text.slice(0, index1);
+		const b = this.text.slice(index1, index2);
+		const c = this.text.slice(index2);
+		this.text = a;
+		return [
+			this,
+			Segment.create({
+				text: b,
+				style: this.style
+			}),
+			Segment.create({
+				text: c,
 				style: this.style
 			})
 		];

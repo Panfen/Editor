@@ -107,13 +107,6 @@ export const initData = {
 						color: 'red'
 					}
 				},
-				{
-					text: 'def',
-					style: {
-						// fontWeight: 'bold',
-						color: 'green'
-					}
-				}
 			],
 			style: {
 				// textAlign: 'center'
