@@ -13,6 +13,7 @@ export default class Segment extends Node {
 	}
 
 	static create(data) {
+		console.log(data)
 		const { id, text, style } = data;
 		return new Segment(id, text, style);
 	}
@@ -54,13 +55,13 @@ export default class Segment extends Node {
 		const a = this.text.slice(0, index1);
 		const b = this.text.slice(index1, index2);
 		const c = this.text.slice(index2);
-		this.text = a;
+		this.text = b;
 		return [
-			this,
 			Segment.create({
-				text: b,
+				text: a,
 				style: this.style
 			}),
+			this,
 			Segment.create({
 				text: c,
 				style: this.style

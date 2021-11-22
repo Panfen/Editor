@@ -95,6 +95,7 @@ export default ({ data }) => {
 		if (!self || !self.rangeCount) {
 			return;
 		}
+		
 		const range = self.getRangeAt(0);
 		const startContainer = range.startContainer;
 		const startParentEl = startContainer.parentElement; // span
@@ -110,10 +111,13 @@ export default ({ data }) => {
 		document.addInlineStyle(startParentEl.id, startOffset, endParentEl.id, endOffset, 'fontWeight', 'bold');
 		setDocument(DocumentModal.create(document));
 
+		// 是否同一个segment的offset
+		const offset = startContainer === endContainer ? endOffset - startOffset : endOffset
+
 		// 设置光标
 		setTimeout(() => {
-			range.setStart(endContainer, endOffset);
-			range.setEnd(endContainer, endOffset);
+			range.setStart(endContainer, offset);
+			range.setEnd(endContainer, offset);
 			self.addRange(range);
 		});
 

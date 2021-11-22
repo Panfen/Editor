@@ -39,12 +39,11 @@ export default class Document extends Node {
 			return [startId, startOffset, endId, endOffset];
 		}
 
-		if (nodes.length === 1) {
-			const segment = this.findNodeById(nodes[0].id);
-			const [a, b, c] = segment.splitByTwo(startOffset, endOffset);
-			b.addStyle(name, value);
-			const paragraph = this.findParentNodeById(segment.id);
-			paragraph.segments = [a, b, c];
+		// 在同一个segment
+		if (startId === endId) {
+			const para = this.findParentNodeById(nodes[0].id);
+			const [, center, ] = para.splitAsThree(nodes[0].id, startOffset, endOffset);
+			center.addStyle(name, value);
 			return;
 		}
 
@@ -57,11 +56,10 @@ export default class Document extends Node {
 		// 拆分最后一个segment
 		const last = nodes[nodes.length - 1];
 		const lastPara = this.findParentNodeById(last.id);
-		const [before, ] = lastPara.split(last.id, startOffset);
+		const [before, af] = lastPara.split(last.id, endOffset);
 		before.addStyle(name, value);
 
 		nodes.slice(1, nodes.length - 1).forEach(node => node.addStyle(name, value));
-		return [after.id, 0, before.id, endOffset];
 	}
 
 	findParentNodeById(id) {
