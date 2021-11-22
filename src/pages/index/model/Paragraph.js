@@ -41,6 +41,7 @@ export default class Paragraph extends Node {
 
 	/**
 	 * 拆分成3个segment
+	 * TODO: 产生空span标签问题（分割点是否位于两个端点）
 	 */ 
 	splitAsThree(segmentId, offset1, offset2) {
 		const index = this.segments.findIndex(segment => segmentId === segment.id);
