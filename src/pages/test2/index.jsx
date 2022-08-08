@@ -31,19 +31,9 @@ export default () => {
 			docData.nodes[0].nodes[index].content += ';'
 		}
 		setDocData({ ...docData });
-		setCurrentSegId(segId)
+		setCurrentSegId(segId);
 
-		setTimeout(() => {
-			const newNode = document.getElementById(segId);
-			const sel = window.getSelection();
-			sel.removeAllRanges();
-			var range = document.createRange();
-			// 设置选中节点的当前range
-			range.selectNode(newNode);
-			sel.addRange(range);
-			// 光标移到节点之后
-			sel.collapseToEnd();
-		});
+		setFocus(segId);
 	}
 
 	const onBlur = (e) => {
@@ -57,11 +47,29 @@ export default () => {
 		setCurrentSegId(sel.anchorNode.parentNode.id || 'ORIGINAL_SEGMENT');
 	}
 
+	/**
+	 * 输入事件处理
+	 */ 
 	const onKeyDown = (e) => {
-		e.preventDefault(); // 必须加上这一句
-		if (['Backspace', 'Delete', 'Meta'].includes(e.key)) {
-			return;
+		// 必须加上
+		e.preventDefault(); 
+		console.log(e.key)
+		switch(e.key) {
+			case 'Meta':
+				break;
+			case 'Backspace':
+				deleteText();
+				break;
+			default:
+				insertText(e.key);
+				break;
 		}
+	}
+
+	/**
+	 * 插入文字
+	 */ 
+	const insertText = (text) => {
 		const sel = window.getSelection();
 		if (!sel) {
 			return;
@@ -69,7 +77,6 @@ export default () => {
 		const range = sel.getRangeAt(0);
 		const startContainer = range.startContainer;
 		const startOffset = range.startOffset;
-		const text = e.key;
 
 		if (!isTypeChinese) {
 
@@ -86,19 +93,41 @@ export default () => {
 
 		setTimeout(() => {
 			const newNode = document.getElementById(currentSegId);
-			console.log(currentSegId)
-			console.log(newNode)
 			const sel = window.getSelection();
 			sel.removeAllRanges();
 			var range = document.createRange();
 			// 设置选中节点的当前range
-  		range.setStart(newNode.firstChild, 0);
-  		range.setEnd(newNode.firstChild, startOffset + text.length)
-  		sel.addRange(range);
-  		// 光标移到节点之后
+			range.setStart(newNode.firstChild, 0);
+			range.setEnd(newNode.firstChild, startOffset + text.length)
+			sel.addRange(range);
+			// 光标移到节点之后
 			sel.collapseToEnd();
-		})
+		});
+	}
 
+	const setFocus = (segId) => {
+		setTimeout(() => {
+			const newNode = document.getElementById(segId);
+			const sel = window.getSelection();
+			sel.removeAllRanges();
+			var range = document.createRange();
+			// 设置选中节点的当前range
+			range.selectNode(newNode);
+			sel.addRange(range);
+			// 光标移到节点之后
+			sel.collapseToEnd();
+		});
+	}
+
+	/**
+	 *
+	 */ 
+	const deleteText = () => {
+		const index = docData.nodes[0].nodes.findIndex(seg => seg.id === currentSegId);
+		const content = docData.nodes[0].nodes[index].content;
+		docData.nodes[0].nodes[index].content = content.substr(0, content.length - 1);
+		setDocData({ ...docData });
+		setFocus(currentSegId);
 	}
 
 	/**
@@ -127,7 +156,6 @@ export default () => {
 			});
 			html += '</div>';
 		});
-		console.log(html)
 		return html
 	}
 
