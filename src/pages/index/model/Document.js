@@ -29,7 +29,13 @@ export default class Document extends Node {
 		if (!node || !(node instanceof Segment)) {
 			return;
 		}
-		node.deleteText(offset, length);
+		const newText = node.deleteText(offset, length);
+		// segment删空内容后，移出整个segment元素
+		if (newText === '') {
+			const pNode = this.findParentNodeById(id);
+			const index = pNode.segments.findIndex(seg => seg.id === id);
+			pNode.segments.splice(index, 1);
+		};
 	}
 
 	addInlineStyle(startId, startOffset, endId, endOffset, name, value) {

@@ -30,12 +30,12 @@ export default ({ data }) => {
 	 * 插入文字
 	 */ 
 	const insertText = (e) => {
-		const self = window.getSelection();
-		if (!self || !self.rangeCount) {
+		const sel = window.getSelection();
+		if (!sel || !sel.rangeCount) {
 			return;
 		}
 		const text = e.key;
-		const range = self.getRangeAt(0);
+		const range = sel.getRangeAt(0);
 		const startContainer = range.startContainer;
 		const parentEl = startContainer.parentElement; // span
 		const startOffset = range.startOffset;
@@ -51,7 +51,8 @@ export default ({ data }) => {
 		setTimeout(() => {
 			range.setStart(startContainer, startOffset + text.length);
 			range.setEnd(startContainer, startOffset + text.length);
-			self.addRange(range);
+			console.log(sel)
+			sel.addRange(range);
 		});
 	}
 
@@ -59,11 +60,11 @@ export default ({ data }) => {
 	 * 删除文字
 	 */ 
 	const deleteText = (backward) => {
-		const self = window.getSelection();
-		if (!self || !self.rangeCount) {
+		const sel = window.getSelection();
+		if (!sel || !sel.rangeCount) {
 			return;
 		}
-		const range = self.getRangeAt(0);
+		const range = sel.getRangeAt(0);
 		const startContainer = range.startContainer;
 		const parentEl = startContainer.parentElement; // span
 		const startOffset = range.startOffset;
@@ -76,14 +77,17 @@ export default ({ data }) => {
 		if (start < 0) {
 			return;
 		}
-		document.deleteText(parentEl.id, start, 1);
+		const newText = document.deleteText(parentEl.id, start, 1);
+		if (newText === '') {
+			// TODO：删除整个segment
+		}
 		setDocument(DocumentModal.create(document));
 
 		// 设置光标
 		setTimeout(() => {
 			range.setStart(startContainer, start);
 			range.setEnd(startContainer, start);
-			self.addRange(range);
+			sel.addRange(range);
 		});
 	}
 
@@ -91,12 +95,12 @@ export default ({ data }) => {
 	 * 加粗
 	 */ 
 	const toggleBold = () => {
-		const self = window.getSelection();
-		if (!self || !self.rangeCount) {
+		const sel = window.getSelection();
+		if (!sel || !sel.rangeCount) {
 			return;
 		}
 		
-		const range = self.getRangeAt(0);
+		const range = sel.getRangeAt(0);
 		const startContainer = range.startContainer;
 		const startParentEl = startContainer.parentElement; // span
 		const startOffset = range.startOffset;
@@ -118,13 +122,13 @@ export default ({ data }) => {
 		setTimeout(() => {
 			range.setStart(endContainer, offset);
 			range.setEnd(endContainer, offset);
-			self.addRange(range);
+			sel.addRange(range);
 		});
 
 	}
 
 	return (
-		<div id="editbox" contentEditable="true" onKeyDown={onKeyDown}>
+		<div id="editbox" contentEditable="true" suppressContentEditableWarning="true" onKeyDown={onKeyDown}>
 			<Document data={document} />
 		</div>
 	)

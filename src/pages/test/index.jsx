@@ -33,6 +33,7 @@ export default () => {
 	const [tempHtml, setTempHtml]= useState('')
 	const [previousInfo, setPreviousInfo] = useState({}); // 光标位置
 	const [parentNode, setParentNode] = useState();
+	const [isTypeChinese, setIsTypeChinese] = useState(false);
 	const editorRef = useRef();
 
 	useEffect(() => {
@@ -84,14 +85,15 @@ export default () => {
 			sel.removeAllRanges();
 			var range = document.createRange();
 			// 设置选中节点的当前range
-  		range.selectNode(newNode);
-  		sel.addRange(range);
-  		// 光标移到节点之后
+			range.selectNode(newNode);
+			sel.addRange(range);
+			// 光标移到节点之后
 			sel.collapseToEnd();
 		}, 100);
 	}
 
 	const onBlur = (e) => {
+		console.log('onBlur')
 		const { anchorNode, anchorOffset } = getSelection();
 		setPreviousInfo({
 			previousSibling: anchorNode?.previousSibling,
@@ -99,9 +101,32 @@ export default () => {
 		});
 	}
 
+	const onClick = () => {
+		const sel = window.getSelection();
+		console.log(sel)
+		if (sel.anchorNode.parentNode.className === 'tag') {
+			message.warning('请不要在引用标签内部输入')
+		}
+	}
+
 	const onInput = (e) => {
-		// console.log(editorRef.current.textContent); // 获取纯文本
+		console.log(isTypeChinese)
+		console.log(editorRef.current.textContent); // 获取纯文本
 		setHtml(editorRef.current.innerHTML);
+	}
+
+	/**
+	 * 中文输入开始事件（先于onInput执行）
+	 */ 
+	const onCompositionStart = () => {
+		setIsTypeChinese(true);
+	}
+
+	/**
+	 * 中文输入结束事件
+	 */ 
+	const onCompositionEnd = () => {
+		setIsTypeChinese(false)
 	}
 
 
@@ -112,9 +137,17 @@ export default () => {
 				{checkList.map(check => <div key={check.id} onClick={() => onSelect(check)}>{check.name}</div>)}
 			</div>
 
-			<div ref={editorRef} className="editor" contentEditable="true" onInput={onInput} onBlur={onBlur}>
-				
-			</div>
+			<div 
+				ref={editorRef} 
+				className="editor" 
+				contentEditable="true" 
+				onInput={onInput}
+				onClick={onClick}
+				onBlur={onBlur}
+				onCompositionStart={onCompositionStart}
+				onCompositionEnd={onCompositionEnd}
+			/>
+
 		</div>
 	)
 }
