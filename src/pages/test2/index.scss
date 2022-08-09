@@ -34,6 +34,16 @@
 		}
 	}
 
+	.text-count {
+		position: relative;
+		span {
+			color: #999;
+			position: absolute;
+			top: -30px;
+			right: 15px;
+		}
+	}
+
 	.btn-box {
 		display: flex;
 		justify-content: flex-end;

@@ -13,10 +13,12 @@ export default () => {
 	const [curSegId, setCurSegId] = useState(); // 当前segmentId
 	const [curParIndex, setCurParIndex] = useState(0);
 	const [curSegIndex, setCurSegIndex] = useState(0);
+	const [textCount, setTextCount] = useState(0);
 	const editorRef = useRef();
 
 	useEffect(() => {
 		renderDoc();
+		getTextCount();
 	}, [docData]);
 
 	useEffect(() => {
@@ -32,7 +34,7 @@ export default () => {
 	 * 插入一个tag
 	 */ 
 	const onSelect = (check) => {
-		addSegment(curSegId, `#${check.name}`, 'tag')
+		addSegment(curSegId, `#${check.name}`, 'tag');
 	}
 
 	/**
@@ -115,10 +117,10 @@ export default () => {
 	 * 输入事件处理
 	 */ 
 	const onKeyDown = (e) => {
-		console.log('onKeyDown')
 		// 必须加上
 		e.preventDefault();
 		const text = e.key;
+		console.log('text:',text, text.length)
 		switch(text) {
 			case 'Meta':
 			case 'Shift':
@@ -165,13 +167,8 @@ export default () => {
 			if (!isTypeChinese) {
 
 			}
-			docData.nodes.forEach(paragraph => {
-				paragraph.nodes.forEach(segment => {
-					if (segment.id === curSegId) {
-						segment.content = segment.content.substr(0, startOffset) + text + segment.content.substr(startOffset);
-					}
-				})
-			});
+			const content = docData.nodes[curParIndex].nodes[curSegIndex].content;
+			docData.nodes[curParIndex].nodes[curSegIndex].content = content.substr(0, startOffset) + text + content.substr(startOffset);
 
 			setDocData({ ...docData });
 			setFocus(curSegId);
@@ -321,6 +318,10 @@ export default () => {
 		return new Date().getTime() + Math.random() + '';
 	}
 
+	const getTextCount = () => {
+		setTextCount(editorRef.current?.textContent.length || 0);
+	}
+
 	/**
 	 * 返回数据对应的html
 	 */ 
@@ -366,6 +367,10 @@ export default () => {
 				onCompositionEnd={onCompositionEnd}
 				dangerouslySetInnerHTML={{ __html: renderDoc() }}
 			/>
+
+			<div className="text-count">
+				<span>字数：{textCount}</span>
+			</div>
 
 			<div className="btn-box">
 				<a className="btn" onClick={onReset}>清空数据</a>
