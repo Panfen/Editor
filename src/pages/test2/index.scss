@@ -3,6 +3,7 @@
 	width: 800px;
 	margin: 90px auto;
 	padding: 20px;
+
 	.tag-box {
 		display: flex;
 		flex-wrap: wrap;
@@ -17,13 +18,31 @@
 			box-shadow: 0px 0.5px 1.5px rgba(0, 0, 0, 0.1);
 		}
 	}
+
 	.editor {
 		height: 320px;
 		overflow-y: scroll;
 		border: 1px solid #f0f0f0;
 		background: #fff;
-		.tag {
-			color: #168AEF;
+		padding: 10px;
+		div {
+			line-height: 21px;
+			min-height: 21px;
+			.tag {
+				color: #168AEF;
+			}
+		}
+	}
+
+	.btn-box {
+		display: flex;
+		justify-content: flex-end;
+		margin-top: 20px;
+		a {
+			padding: 8px 20px;
+			background: #1890ff;
+			color: #fff;
+			margin-left: 10px;
 		}
 	}
 }

@@ -4,22 +4,22 @@ export const initDocData = {
 	title: '文档标题',
 	createTime: '2022-08-08 15:00:00',
 	nodes: [
-		{
-			id: '1',
-			type: 'paragraph',
-			element: 'div',
-			style: '', // 内联样式
-			nodes: [
-				{
-					id: 'ORIGINAL_SEGMENT',
-					type: 'segment',
-					element: 'span',
-					style: '',
-					className: '',
-					content: ''
-				}
-			]
-		}
+		// {
+		// 	id: 'ORIGINAL_PARAGRAPH',
+		// 	type: 'paragraph',
+		// 	element: 'div',
+		// 	style: '', // 内联样式
+		// 	nodes: [
+		// 		{
+		// 			id: 'ORIGINAL_SEGMENT',
+		// 			type: 'segment',
+		// 			element: 'span',
+		// 			style: '',
+		// 			className: '',
+		// 			content: ''
+		// 		}
+		// 	]
+		// }
 	]
 };
 
