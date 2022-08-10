@@ -13,6 +13,7 @@ export default () => {
 	const [curSegId, setCurSegId] = useState(); // 当前segmentId
 	const [curParIndex, setCurParIndex] = useState(0);
 	const [curSegIndex, setCurSegIndex] = useState(0);
+	const [curOffest, setCurOffset] = useState(0);
 	const [textCount, setTextCount] = useState(0);
 	const editorRef = useRef();
 
@@ -83,6 +84,7 @@ export default () => {
 			setCurParId(sel.anchorNode.parentNode.parentNode.id);
 			setCurSegId(sel.anchorNode.parentNode.id);
 		}
+		setCurOffset(sel.anchorOffset);
 	}
 
 	/**
@@ -153,25 +155,28 @@ export default () => {
 	 * 插入文字
 	 */ 
 	const insertText = (text) => {
+		if (text === ' ') {
+			text = '\xa0';
+		}
 		const sel = window.getSelection();
 		if (!sel || isTypeChinese) {
 			return;
 		}
+
+		const { anchorNode, anchorOffset } = sel;
+		console.log(sel)
 		// 在tag之后输入，需要新建segment
-		if (sel.anchorNode.parentNode.className === 'tag') {
-			addSegment(sel.anchorNode.parentNode.id, text, '', false);
+		if (anchorNode.parentNode.className === 'tag') {
+			addSegment(anchorNode.parentNode.id, text, '', false);
 		} else {
-			const range = sel.getRangeAt(0);
-			const startOffset = range.startOffset;
-
-			if (!isTypeChinese) {
-
-			}
 			const content = docData.nodes[curParIndex].nodes[curSegIndex].content;
-			docData.nodes[curParIndex].nodes[curSegIndex].content = content.substr(0, startOffset) + text + content.substr(startOffset);
+			docData.nodes[curParIndex].nodes[curSegIndex].content = content.substr(0, anchorOffset) + text + content.substr(anchorOffset);
 
 			setDocData({ ...docData });
-			setFocus(curSegId);
+
+			const newOffset = curOffest + text.length;
+			setFocus(curSegId, newOffset);
+			setCurOffset(newOffset);
 		}
 	}
 
@@ -210,14 +215,17 @@ export default () => {
 			// 如果有下一个节点，进入下一个节点
 			if (curSegIndex < docData.nodes[curParIndex].nodes.length - 1) {
 				setFocus(docData.nodes[curParIndex].nodes[curSegIndex + 1].id, 1);
+				setCurOffset(1);
 			}
 		} else if (newOffset < 0) { // 左移超出边界
 			// 如果前面还有节点，进入前一个节点
 			if (curSegIndex !== 0) {
 				setFocus(docData.nodes[curParIndex].nodes[curSegIndex - 1].id, docData.nodes[curParIndex].nodes[curSegIndex - 1].content.length - 1);
+				setCurOffset(docData.nodes[curParIndex].nodes[curSegIndex - 1].content.length - 1);
 			}
 		} else {
-			setFocus(curSegId, anchorOffset + offset);
+			setFocus(curSegId, newOffset);
+			setCurOffset(newOffset);
 		}
 	}
 
@@ -295,7 +303,6 @@ export default () => {
 	 * 中文输入开始事件（先于onInput执行）
 	 */ 
 	const onCompositionStart = () => {
-		console.log('中文输入开始')
 		isTypeChinese = true;
 	}
 
