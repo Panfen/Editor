@@ -162,18 +162,15 @@ export default () => {
 		if (!sel || isTypeChinese) {
 			return;
 		}
-
 		const { anchorNode, anchorOffset } = sel;
-		console.log(sel)
 		// 在tag之后输入，需要新建segment
 		if (anchorNode.parentNode.className === 'tag') {
 			addSegment(anchorNode.parentNode.id, text, '', false);
+			setCurOffset(1);
 		} else {
 			const content = docData.nodes[curParIndex].nodes[curSegIndex].content;
 			docData.nodes[curParIndex].nodes[curSegIndex].content = content.substr(0, anchorOffset) + text + content.substr(anchorOffset);
-
 			setDocData({ ...docData });
-
 			const newOffset = curOffest + text.length;
 			setFocus(curSegId, newOffset);
 			setCurOffset(newOffset);
