@@ -50,10 +50,22 @@ export default () => {
 			element: 'span',
 			content: text
 		};
-		const index = docData.nodes[curParIndex].nodes.findIndex(seg => seg.id === previousSegId);
-		docData.nodes[curParIndex].nodes.splice(index + 1, 0, newSeg);
-		if (showSemicolon && docData.nodes[curParIndex].nodes[index].content) {
-			docData.nodes[curParIndex].nodes[index].content += ';'
+		if (docData.nodes.length) {
+			const index = docData.nodes[curParIndex]?.nodes.findIndex(seg => seg.id === previousSegId);
+			docData.nodes[curParIndex].nodes.splice(index + 1, 0, newSeg);
+			if (showSemicolon && docData.nodes[curParIndex].nodes[index].content) {
+				docData.nodes[curParIndex].nodes[index].content += ';'
+			}
+		} else {
+			// 初始状态添加tag
+			docData.nodes = [
+				{
+					id: generateId(),
+					type: 'paragraph',
+					element: 'div',
+					nodes: [newSeg]
+				}
+			];
 		}
 		setDocData({ ...docData });
 		setCurSegId(segId);
