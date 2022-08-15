@@ -47,6 +47,8 @@ export default ({ data }) => {
 		document.insertText(parentEl.id, startOffset, text);
 		setDocument(DocumentModal.create(document));
 
+		console.log(sel.arch)
+
 		// 设置光标
 		setTimeout(() => {
 			range.setStart(startContainer, startOffset + text.length);

@@ -1,3 +1,9 @@
+/**
+ * PC端编辑器，移动端不适配
+ * 待解决问题：
+ * - 中文输入光标后移一位
+ */ 
+
 import React, { useState, useEffect, useRef } from 'react';
 import { message } from 'antd';
 import { initDocData, checkList } from './constants'; 
@@ -13,7 +19,6 @@ export default () => {
 	const [curSegId, setCurSegId] = useState(); // 当前segmentId
 	const [curParIndex, setCurParIndex] = useState(0);
 	const [curSegIndex, setCurSegIndex] = useState(0);
-	const [curOffest, setCurOffset] = useState(0);
 	const [textCount, setTextCount] = useState(0);
 	const editorRef = useRef();
 
@@ -96,7 +101,6 @@ export default () => {
 			setCurParId(sel.anchorNode.parentNode.parentNode.id);
 			setCurSegId(sel.anchorNode.parentNode.id);
 		}
-		setCurOffset(sel.anchorOffset);
 	}
 
 	/**
@@ -134,10 +138,10 @@ export default () => {
 		// 必须加上
 		e.preventDefault();
 		const text = e.key;
-		console.log('text:',text, text.length)
 		switch(text) {
 			case 'Meta':
 			case 'Shift':
+			case 'CapsLock':
 				break;
 			case 'Backspace':
 				deleteText();
@@ -175,17 +179,19 @@ export default () => {
 			return;
 		}
 		const { anchorNode, anchorOffset } = sel;
+		
+		// 中文输入结束时，点空格键会多出一个空格，处理
+		if (anchorNode.className === 'editor') {
+			return;
+		}
 		// 在tag之后输入，需要新建segment
 		if (anchorNode.parentNode.className === 'tag') {
 			addSegment(anchorNode.parentNode.id, text, '', false);
-			setCurOffset(1);
 		} else {
 			const content = docData.nodes[curParIndex].nodes[curSegIndex].content;
 			docData.nodes[curParIndex].nodes[curSegIndex].content = content.substr(0, anchorOffset) + text + content.substr(anchorOffset);
 			setDocData({ ...docData });
-			const newOffset = curOffest + text.length;
-			setFocus(curSegId, newOffset);
-			setCurOffset(newOffset);
+			setFocus(curSegId, anchorOffset + text.length);
 		}
 	}
 
@@ -193,14 +199,20 @@ export default () => {
 	 * 设置光标
 	 */ 
 	const setFocus = (segId, offset) => {
+
 		setCurSegId(segId);
 		setTimeout(() => {
 			const newNode = document.getElementById(segId);
 			const sel = window.getSelection();
 			sel.removeAllRanges();
 			var range = document.createRange();
+
 			// 设置选中节点的当前range
 			if (newNode.firstChild) {
+				// 避免越界
+				if (offset > newNode.firstChild.length) {
+					offset = newNode.firstChild.length;
+				}
 				range.setStart(newNode.firstChild, 0);
 				range.setEnd(newNode.firstChild, offset === undefined ? newNode.firstChild.length : offset);
 			} else {
@@ -224,17 +236,14 @@ export default () => {
 			// 如果有下一个节点，进入下一个节点
 			if (curSegIndex < docData.nodes[curParIndex].nodes.length - 1) {
 				setFocus(docData.nodes[curParIndex].nodes[curSegIndex + 1].id, 1);
-				setCurOffset(1);
 			}
 		} else if (newOffset < 0) { // 左移超出边界
 			// 如果前面还有节点，进入前一个节点
 			if (curSegIndex !== 0) {
 				setFocus(docData.nodes[curParIndex].nodes[curSegIndex - 1].id, docData.nodes[curParIndex].nodes[curSegIndex - 1].content.length - 1);
-				setCurOffset(docData.nodes[curParIndex].nodes[curSegIndex - 1].content.length - 1);
 			}
 		} else {
 			setFocus(curSegId, newOffset);
-			setCurOffset(newOffset);
 		}
 	}
 
@@ -320,7 +329,7 @@ export default () => {
 	 */ 
 	const onCompositionEnd = (e) => {
 		isTypeChinese = false;
-		insertText(e.data)
+		insertText(e.data);
 	}
 
 	/**
