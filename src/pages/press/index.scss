@@ -1,0 +1,29 @@
+.test-container {
+	background: #f7f7f7;
+	width: 800px;
+	margin: 90px auto;
+	padding: 20px;
+	.tag-box {
+		display: flex;
+		flex-wrap: wrap;
+		margin-bottom: 20px;
+		div {
+			height: 34px;
+			line-height: 34px;
+			padding: 0 16px;
+			margin: 0 10px 10px 0;
+			background: #fff;
+			cursor: pointer;
+			box-shadow: 0px 0.5px 1.5px rgba(0, 0, 0, 0.1);
+		}
+	}
+	.editor {
+		height: 320px;
+		overflow-y: scroll;
+		border: 1px solid #f0f0f0;
+		background: #fff;
+		.tag {
+			color: #168AEF;
+		}
+	}
+}

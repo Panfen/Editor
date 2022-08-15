@@ -74,22 +74,21 @@ export default () => {
 				}
 			})
 		}
-		const nodeId = new Date().getTime() + '';
+		const nodeId = check.id + '-' + new Date().getTime();
 		const newHtml = html.slice(0, position) + `<span id="${nodeId}" class="tag">#${check.name}</span>` + html.slice(position);
 
 		editorRef.current.innerHTML = newHtml;
 		setHtml(newHtml)
-		setTimeout(() => {
-			const newNode = document.getElementById(nodeId);
-			const sel = window.getSelection();
-			sel.removeAllRanges();
-			var range = document.createRange();
-			// 设置选中节点的当前range
-			range.selectNode(newNode);
-			sel.addRange(range);
-			// 光标移到节点之后
-			sel.collapseToEnd();
-		}, 100);
+		const newNode = document.getElementById(nodeId);
+		const sel = window.getSelection();
+		
+		var range = document.createRange();
+		// 设置选中节点的当前range
+		range.selectNode(newNode);
+		sel.removeAllRanges();
+		sel.addRange(range);
+		// 光标移到节点之后
+		sel.collapseToEnd();
 	}
 
 	const onBlur = (e) => {
@@ -103,16 +102,45 @@ export default () => {
 
 	const onClick = () => {
 		const sel = window.getSelection();
-		console.log(sel)
 		if (sel.anchorNode.parentNode.className === 'tag') {
 			message.warning('请不要在引用标签内部输入')
 		}
 	}
 
 	const onInput = (e) => {
-		console.log(isTypeChinese)
-		console.log(editorRef.current.textContent); // 获取纯文本
+		// console.log(isTypeChinese)
+		// console.log(editorRef.current.textContent); // 获取纯文本
 		setHtml(editorRef.current.innerHTML);
+
+		editorRef.current.childNodes.forEach((node, index) => {
+			const check = checkList.find(item => item.id === node.id?.split('-')[0]);
+			if (node.className === 'tag') {
+				if (node.textContent.length > check.name.length + 1) {
+					console.log(1)
+					// 新文本节点的内容
+					const textNodeCont = node.textContent.substr(check.name.length + 1);
+					// tag内容重置
+					node.textContent = `#${check.name}`;
+					// 添加文本节点
+					const textNode = document.createTextNode(textNodeCont)
+					editorRef.current.insertBefore(textNode, node.nextSibling);
+
+					const sel = window.getSelection();
+					var range = document.createRange();
+					// 设置选中节点的当前range
+					range.selectNode(textNode);
+					sel.removeAllRanges();
+					sel.addRange(range);
+					// 光标移到节点之后
+					sel.collapseToEnd();
+				} else if (node.textContent.length < check.name.length + 1) {
+					console.log(2)
+					editorRef.current.removeChild(node);
+				} else {
+					console.log(3)
+				}
+			}
+		})
 	}
 
 	/**
@@ -128,7 +156,6 @@ export default () => {
 	const onCompositionEnd = () => {
 		setIsTypeChinese(false)
 	}
-
 
 	return (
 		<div className="test-container">
