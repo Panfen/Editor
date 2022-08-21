@@ -23,9 +23,7 @@ const checkList = [
 		key: '5',
 		name: '电解质'
 	}
-]
-
-let id = 0
+];
 
 export default (props) => {
 
@@ -41,15 +39,14 @@ export default (props) => {
 	}, []);
 
 	const initData = () => {
-		setHtml(`<div><span id="INITTIAL_ID"></span></div>`)
+		setHtml(`<div><span id="INITTIAL_ID"></span></div>`);
+		collapseNode('INITTIAL_ID');
 	}
 
 	const onSelect = (check) => {
 		editorRef.current.focus();
 
 		const { id = 'INITTIAL_ID', offset = 0 } = previousInfo.current;
-
-		console.log(id)
 
 		const targetNode = document.getElementById(id);
 		const content = targetNode.textContent;
@@ -99,8 +96,12 @@ export default (props) => {
 
 	const onClick = () => {
 		const sel = window.getSelection();
+		// 光标在引用项目
 		if (sel.anchorNode.parentNode.className === 'tag') {
-			message.warning('请不要在引用标签内部输入')
+			previousInfo.current = {
+				id: sel.anchorNode.parentNode.id,
+				offset: sel.anchorOffset
+			}
 		}
 	}
 
@@ -137,8 +138,8 @@ export default (props) => {
 	}
 
 	const onInput = (e) => {
-		// console.log(isTypeChinese)
-		if (editorRef.current.childNodes[0].childNodes[0].nodeType === 3) {
+		const fistNode = editorRef.current.childNodes[0];
+		if (!fistNode || fistNode?.nodeType === 3 || fistNode?.childNodes[0]?.nodeType === 3) {
 			const id = generateId();
 			setHtml(`<div><span id="${id}">${editorRef.current.textContent}</span></div>`);
 			collapseNode(id);
@@ -146,33 +147,44 @@ export default (props) => {
 		}
 		
 		editorRef.current.childNodes.forEach((_node) => {
-			if (_node.nodeName === 'DIV') {
-				// 换行后为span添加id
-				_node.childNodes.forEach(childNode => {
-					if (!childNode?.hasAttribute('id')) {
-						const id = generateId();
-						childNode.setAttribute('id', id);
-						previousInfo.current = {
-							id,
-							offset: 0
-						}
+			// 换行后为span添加id
+			_node.childNodes.forEach(childNode => {
+				if (!childNode?.hasAttribute('id')) {
+					const id = generateId();
+					childNode.setAttribute('id', id);
+					previousInfo.current = {
+						id,
+						offset: 0
 					}
-				});
-				// 换行后在上一行末尾添加分号
-				if (_node.previousSibling) {
-					const content = _node.previousSibling.lastChild.textContent;
-					if (!content.endsWith('；')) {
-						const semicolonNode = createNode('', '', '；');
-						_node.previousSibling.appendChild(semicolonNode);
-					}
+				}
+			});
+
+			// 换行后在上一行末尾添加分号
+			if (_node.previousSibling) {
+				const content = _node.previousSibling.lastChild.textContent;
+				if (!content.endsWith('；')) {
+					const semicolonNode = createNode('', '', '；');
+					_node.previousSibling.appendChild(semicolonNode);
 				}
 			}
 
 			// 处理引用项后输入和删除引用项
 			_node.childNodes.forEach((node) => {
 				const check = checkList.find(item => item.key === node.id?.split('-')[0]);
-				if (node.className === 'tag') {
-					if (node.textContent.length > check.name.length + 1) {
+				if (node?.className === 'tag') {
+					const sel = window.getSelection();
+					var range = document.createRange();
+					if (node.textContent.length > check?.name.length + 1) {
+						// 引用项中间输入处理：不允许输入，恢复原状
+						if (previousInfo.current.offset < check.name.length + 1) {
+							// 引用项内容重置
+							node.textContent = `#${check.name}`;
+							range.setStart(node.firstChild, previousInfo.current.offset);
+							range.setEnd(node.firstChild, previousInfo.current.offset);
+							sel.removeAllRanges();
+							sel.addRange(range);
+							return;
+						}
 						// 新文本节点的内容
 						const textNodeCont = node.textContent.substr(check.name.length + 1);
 						// 引用项内容重置
@@ -180,17 +192,27 @@ export default (props) => {
 						// 添加文本节点
 						const textNode = createNode('', '', textNodeCont)
 						_node.insertBefore(textNode, node.nextSibling);
-
-						const sel = window.getSelection();
-						var range = document.createRange();
+						
 						// 设置选中节点的当前range
 						range.selectNode(textNode);
 						sel.removeAllRanges();
 						sel.addRange(range);
 						// 光标移到节点之后
 						sel.collapseToEnd();
-					} else if (node.textContent.length < check.name.length + 1) {
-						_node.removeChild(node);
+					} else if (node.textContent.length < check?.name.length + 1) {
+						// 从引用项中间回车换行处理：：不允许换行，恢复原状
+						if (node.textContent + editorRef.current.lastChild.textContent ===  '#' + check.name) {
+							editorRef.current.removeChild(editorRef.current.lastChild);
+							// 引用项内容重置
+							node.textContent = `#${check.name}`;
+							range.setStart(node.firstChild, previousInfo.current.offset);
+							range.setEnd(node.firstChild, previousInfo.current.offset);
+							sel.removeAllRanges();
+							sel.addRange(range);
+						} else {
+							_node.removeChild(node);
+						}
+						
 					}
 				}
 			})
