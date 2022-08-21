@@ -55,9 +55,14 @@ export default (props) => {
 		const content = targetNode.textContent;
 		// 前部分文字处理
 		targetNode.textContent = content.substr(0, offset);
+		// 插入分号
+		const semicolonNode = createNode('', '', '；');
+		if (offset) {
+			targetNode.parentNode.insertBefore(semicolonNode, targetNode.nextSibling);
+		}
 		// 插入引用项
 		const tagNode = createNode(check.key, 'tag', '#' + check.name);
-		targetNode.parentNode.insertBefore(tagNode, targetNode.nextSibling);
+		targetNode.parentNode.insertBefore(tagNode, offset ? semicolonNode.nextSibling : targetNode.nextSibling);
 
 		if (offset < content.length) {
 			// 后部分文字处理
@@ -157,8 +162,8 @@ export default (props) => {
 				if (_node.previousSibling) {
 					const content = _node.previousSibling.lastChild.textContent;
 					if (!content.endsWith('；')) {
-						const textNode = createNode('', '', '；');
-						_node.previousSibling.appendChild(textNode);
+						const semicolonNode = createNode('', '', '；');
+						_node.previousSibling.appendChild(semicolonNode);
 					}
 				}
 			}
