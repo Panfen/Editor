@@ -20,6 +20,7 @@
     "build": "ai build"
   },
   "devDependencies": {
+    "@aistarfish/cli": "^3.4.2",
     "babel-eslint": "^8.2.6",
     "babel-plugin-import": "^1.13.0",
     "eslint": "^5.4.0",

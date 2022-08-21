@@ -31,10 +31,10 @@ export default (props) => {
 
 	const [html, setHtml] = useState('')
 	const [tempHtml, setTempHtml]= useState('')
-	const [previousInfo, setPreviousInfo] = useState({}); // 光标位置
 	const [parentNode, setParentNode] = useState();
 	const [isTypeChinese, setIsTypeChinese] = useState(false);
 	const editorRef = useRef();
+	const previousInfo = useRef({}); // 光标位置
 
 	useEffect(() => {
 		initData();
@@ -47,7 +47,10 @@ export default (props) => {
 	const onSelect = (check) => {
 		editorRef.current.focus();
 
-		const { offset = 0, id = 'INITTIAL_ID' } = previousInfo;
+		const { id = 'INITTIAL_ID', offset = 0 } = previousInfo.current;
+
+		console.log(id)
+
 		const targetNode = document.getElementById(id);
 		const content = targetNode.textContent;
 		// 前部分文字处理
@@ -70,15 +73,23 @@ export default (props) => {
 		sel.addRange(range);
 		// 光标移到节点之后
 		sel.collapseToEnd();
+
+		// 保存光标信息
+		previousInfo.current = {
+			id: tagNode.getAttribute('id'),
+			offset: check.name.length + 1
+		}
 	}
 
 	const onBlur = (e) => {
 		const sel = window.getSelection();
 		const { anchorNode, anchorOffset } = sel;
-		setPreviousInfo({
-			id: anchorNode?.parentElement?.id,
-			offset: anchorOffset,
-		});
+		if (anchorNode?.parentElement?.id) {
+			previousInfo.current = {
+				id: anchorNode?.parentElement?.id,
+				offset: anchorOffset,
+			};
+		}
 	}
 
 	const onClick = () => {
@@ -101,7 +112,7 @@ export default (props) => {
 	}
 
 	const generateId = (id = '') => {
-		return id + '-' + new Date().getTime();
+		return id + '-' + new Date().getTime() + Math.random().toFixed(2);
 	}
 
 	/**
@@ -122,19 +133,24 @@ export default (props) => {
 
 	const onInput = (e) => {
 		// console.log(isTypeChinese)
-		if (editorRef.current.childNodes[0].nodeType === 3) {
-			const id = generateId()
+		if (editorRef.current.childNodes[0].childNodes[0].nodeType === 3) {
+			const id = generateId();
 			setHtml(`<div><span id="${id}">${editorRef.current.textContent}</span></div>`);
 			collapseNode(id);
+			return;
 		}
-
 		
 		editorRef.current.childNodes.forEach((_node) => {
 			if (_node.nodeName === 'DIV') {
 				// 换行后为span添加id
 				_node.childNodes.forEach(childNode => {
-					if (!childNode?.getAttribute('id')) {
-						childNode.setAttribute('id', generateId());
+					if (!childNode?.hasAttribute('id')) {
+						const id = generateId();
+						childNode.setAttribute('id', id);
+						previousInfo.current = {
+							id,
+							offset: 0
+						}
 					}
 				});
 				// 换行后在上一行末尾添加分号
