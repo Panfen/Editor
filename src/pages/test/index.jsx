@@ -45,10 +45,20 @@ export default (props) => {
 
 	const onSelect = (check) => {
 		editorRef.current.focus();
+		const sel = window.getSelection();
+		var range = document.createRange();
 
 		const { id = 'INITTIAL_ID', offset = 0 } = previousInfo.current;
 
 		const targetNode = document.getElementById(id);
+		if (targetNode.className === 'tag') {
+			range.setStart(targetNode.firstChild, offset);
+			range.setEnd(targetNode.firstChild, offset);
+			sel.removeAllRanges();
+			sel.addRange(range);
+			return;
+		}
+
 		const content = targetNode.textContent;
 		// 前部分文字处理
 		targetNode.textContent = content.substr(0, offset);
@@ -67,8 +77,7 @@ export default (props) => {
 			targetNode.parentNode.insertBefore(textNode, tagNode.nextSibling);
 		}
 		
-		const sel = window.getSelection();
-		var range = document.createRange();
+		
 		// 设置选中节点的当前range
 		range.selectNode(tagNode);
 		sel.removeAllRanges();
@@ -162,7 +171,7 @@ export default (props) => {
 			// 换行后在上一行末尾添加分号
 			if (_node.previousSibling) {
 				const content = _node.previousSibling.lastChild.textContent;
-				if (!content.endsWith('；')) {
+				if (content && !content.endsWith('；')) {
 					const semicolonNode = createNode('', '', '；');
 					_node.previousSibling.appendChild(semicolonNode);
 				}
