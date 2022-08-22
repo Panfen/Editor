@@ -27,78 +27,110 @@ const checkList = [
 
 export default (props) => {
 
-	const [html, setHtml] = useState('')
-	const [tempHtml, setTempHtml]= useState('')
-	const [parentNode, setParentNode] = useState();
-	const [isTypeChinese, setIsTypeChinese] = useState(false);
 	const editorRef = useRef();
 	const previousInfo = useRef({}); // 光标位置
+	const scrollInfo = useRef({}); // 滚动条位置
+	const [content, setContent] = useState();
+	const [selectList, setSelectList] = useState([]);
 
 	useEffect(() => {
 		initData();
+		editorRef.current.addEventListener('scroll', onEditorScroll);
+		return () => {
+			editorRef.current.removeEventListener('scroll', onEditorScroll);
+		}
 	}, []);
 
-	const initData = () => {
-		setHtml(`<div><span id="INITTIAL_ID"></span></div>`);
+	const initData = (content = '') => {
+		const initDiv = document.createElement('div');
+		const initSpan = createNode('INITTIAL_ID', '', content);
+		initDiv.appendChild(initSpan);
+		editorRef.current.innerHTML = '';
+		editorRef.current.appendChild(initDiv);
 		collapseNode('INITTIAL_ID');
 	}
 
+	const onEditorScroll = (e) => {
+		scrollInfo.current = editorRef.current.scrollTop;
+	}
+
 	const onSelect = (check) => {
-		editorRef.current.focus();
 		const sel = window.getSelection();
 		var range = document.createRange();
-
 		const { id = 'INITTIAL_ID', offset = 0 } = previousInfo.current;
-
 		const targetNode = document.getElementById(id);
-		if (targetNode.className === 'tag') {
-			range.setStart(targetNode.firstChild, offset);
-			range.setEnd(targetNode.firstChild, offset);
-			sel.removeAllRanges();
-			sel.addRange(range);
-			return;
+
+		if (targetNode?.className === 'tag') {
+			// 引用项名称中间不能插入引用项
+			const check = checkList.find(item => item.key === id.split('-')[0]);
+			if (offset > 0 && offset < check.name.length + 1) {
+				range.setStart(targetNode.firstChild, offset);
+				range.setEnd(targetNode.firstChild, offset);
+				sel.removeAllRanges();
+				sel.addRange(range);
+				return;
+			}
 		}
 
 		const content = targetNode.textContent;
 		// 前部分文字处理
 		targetNode.textContent = content.substr(0, offset);
-		// 插入分号
-		const semicolonNode = createNode('', '', '；');
-		if (offset) {
+		// 分号节点
+		const semicolonNode = createNode('', 'semicolon', '；');
+		// 段首不插入分号；前面已经是分号不插入分号
+		if (offset && targetNode?.className !== 'semicolon') {
 			targetNode.parentNode.insertBefore(semicolonNode, targetNode.nextSibling);
 		}
 		// 插入引用项
 		const tagNode = createNode(check.key, 'tag', '#' + check.name);
-		targetNode.parentNode.insertBefore(tagNode, offset ? semicolonNode.nextSibling : targetNode.nextSibling);
+		targetNode.parentNode.insertBefore(tagNode, offset && targetNode?.className !== 'semicolon' ? semicolonNode.nextSibling : targetNode.nextSibling);
 
 		if (offset < content.length) {
-			// 后部分文字处理
-			const textNode = createNode('', '', content.substr(offset));
+			// 后部分文字/应用项处理
+			const textNode = createNode(id !== 'INITTIAL_ID' ? id.split('-')[0] : '', targetNode.className, content.substr(offset));
 			targetNode.parentNode.insertBefore(textNode, tagNode.nextSibling);
 		}
-		
+
+		// 在一个应用前插入另一个引用
+		if (tagNode.nextSibling?.className === 'tag') {
+			targetNode.parentNode.insertBefore(semicolonNode, tagNode.nextSibling);
+		}
+		// 如果目标节点内容为空，则删除
+		if (!targetNode.textContent) {
+			targetNode.parentNode.removeChild(targetNode)
+		}
 		
 		// 设置选中节点的当前range
 		range.selectNode(tagNode);
+		range.setStart(tagNode.firstChild, check.name.length + 1);
+		range.setEnd(tagNode.firstChild, check.name.length + 1);
 		sel.removeAllRanges();
 		sel.addRange(range);
-		// 光标移到节点之后
-		sel.collapseToEnd();
 
 		// 保存光标信息
 		previousInfo.current = {
 			id: tagNode.getAttribute('id'),
 			offset: check.name.length + 1
 		}
+
+		editorRef.current.scrollTo(0, scrollInfo.current);
+
+		getContent();
 	}
 
 	const onBlur = (e) => {
 		const sel = window.getSelection();
 		const { anchorNode, anchorOffset } = sel;
-		if (anchorNode?.parentElement?.id) {
+		const id = anchorNode?.parentElement?.id || anchorNode?.id;
+		if (id) {
 			previousInfo.current = {
-				id: anchorNode?.parentElement?.id,
+				id,
 				offset: anchorOffset,
+			};
+		} else {
+			previousInfo.current = {
+				id: 'INITTIAL_ID',
+				offset: 0,
 			};
 		}
 	}
@@ -120,8 +152,10 @@ export default (props) => {
 	const createNode = (id = '', className = '', text = '') => {
 		const newId = generateId(id);
 		const node = document.createElement('span');
-		node.setAttribute('id', newId);
-		node.setAttribute('class', className);
+		node.setAttribute('id', id === 'INITTIAL_ID' ? id : newId);
+		if (className) {
+			node.setAttribute('class', className);
+		}
 		node.textContent = text;
 		return node;
 	}
@@ -138,20 +172,27 @@ export default (props) => {
 			const sel = window.getSelection();
 			var range = document.createRange();
 			// 设置选中节点的当前range
-			range.selectNode(document.getElementById(id));
-			sel.removeAllRanges();
-			sel.addRange(range);
-			// 光标移到节点之后
-			sel.collapseToEnd();
+			const node = document.getElementById(id);
+			if (node.firstChild) {
+				const offset = node.textContent.length;
+				range.setStart(node.firstChild, offset);
+				range.setEnd(node.firstChild, offset);
+				sel.removeAllRanges();
+				sel.addRange(range);
+			} else {
+				range.selectNode(node);
+				sel.removeAllRanges();
+				sel.addRange(range);
+				sel.collapseToEnd();
+			}
 		});
 	}
 
 	const onInput = (e) => {
+		getContent();
 		const fistNode = editorRef.current.childNodes[0];
-		if (!fistNode || fistNode?.nodeType === 3 || fistNode?.childNodes[0]?.nodeType === 3) {
-			const id = generateId();
-			setHtml(`<div><span id="${id}">${editorRef.current.textContent}</span></div>`);
-			collapseNode(id);
+		if (!fistNode || fistNode?.nodeType === 3 || fistNode?.childNodes[0]?.nodeType === 3 || fistNode?.nodeName === 'BR') {
+			initData(editorRef.current.textContent);
 			return;
 		}
 		
@@ -161,6 +202,7 @@ export default (props) => {
 				if (!childNode?.hasAttribute('id')) {
 					const id = generateId();
 					childNode.setAttribute('id', id);
+					childNode.removeAttribute('class');
 					previousInfo.current = {
 						id,
 						offset: 0
@@ -170,9 +212,9 @@ export default (props) => {
 
 			// 换行后在上一行末尾添加分号
 			if (_node.previousSibling) {
-				const content = _node.previousSibling.lastChild.textContent;
+				const content = _node.previousSibling.lastChild?.textContent;
 				if (content && !content.endsWith('；')) {
-					const semicolonNode = createNode('', '', '；');
+					const semicolonNode = createNode('', 'semicolon', '；');
 					_node.previousSibling.appendChild(semicolonNode);
 				}
 			}
@@ -185,7 +227,7 @@ export default (props) => {
 					var range = document.createRange();
 					if (node.textContent.length > check?.name.length + 1) {
 						// 引用项中间输入处理：不允许输入，恢复原状
-						if (previousInfo.current.offset < check.name.length + 1) {
+						if (previousInfo.current.offset > 0 && previousInfo.current.offset < check.name.length + 1) {
 							// 引用项内容重置
 							node.textContent = `#${check.name}`;
 							range.setStart(node.firstChild, previousInfo.current.offset);
@@ -199,9 +241,15 @@ export default (props) => {
 						// 引用项内容重置
 						node.textContent = `#${check.name}`;
 						// 添加文本节点
-						const textNode = createNode('', '', textNodeCont)
-						_node.insertBefore(textNode, node.nextSibling);
-						
+						const textNode = createNode('', '', textNodeCont);
+						if (previousInfo.current.offset) {
+							_node.insertBefore(textNode, node.nextSibling);
+						} else {
+							_node.insertBefore(textNode, node);
+							const semicolonNode = createNode('', 'semicolon', '；');
+							_node.insertBefore(semicolonNode, node);
+						}
+							
 						// 设置选中节点的当前range
 						range.selectNode(textNode);
 						sel.removeAllRanges();
@@ -221,25 +269,26 @@ export default (props) => {
 						} else {
 							_node.removeChild(node);
 						}
-						
 					}
 				}
-			})
+			});
 		});
 	}
 
-	/**
-	 * 中文输入开始事件（先于onInput执行）
-	 */ 
-	const onCompositionStart = () => {
-		setIsTypeChinese(true);
-	}
-
-	/**
-	 * 中文输入结束事件
-	 */ 
-	const onCompositionEnd = () => {
-		setIsTypeChinese(false)
+	const getContent = () => {
+		setTimeout(() => {
+			setContent(editorRef.current.textContent)
+			const selectList = [];
+			editorRef.current.childNodes.forEach(_node => {
+				_node.childNodes.forEach(node => {
+					if (node.className === 'tag') {
+						const check = checkList.find(item => item.name === node.textContent.substr(1));
+						selectList.push(check);
+					}
+				})
+			});
+			setSelectList([ ...selectList ]);
+		});
 	}
 
 	return (
@@ -256,10 +305,14 @@ export default (props) => {
 				onInput={onInput}
 				onClick={onClick}
 				onBlur={onBlur}
-				dangerouslySetInnerHTML={{ __html: html }}
-				onCompositionStart={onCompositionStart}
-				onCompositionEnd={onCompositionEnd}
 			/>
+
+			<div>已引用项目：{selectList.reduce((acc, val) => {
+				acc.push(val.name);
+				return acc;
+			}, []).join('、')}</div>
+
+			<div>预览：{content}</div>
 
 		</div>
 	)
