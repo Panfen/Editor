@@ -168,6 +168,7 @@ export default (props) => {
 	 * 光标移动至某个节点后
 	 */ 
 	const collapseNode = (id) => {
+		console.log(id)
 		setTimeout(() => {
 			const sel = window.getSelection();
 			var range = document.createRange();
@@ -267,6 +268,9 @@ export default (props) => {
 							sel.removeAllRanges();
 							sel.addRange(range);
 						} else {
+							if (node.previousSibling?.id) {
+								collapseNode(node.previousSibling?.id)
+							}
 							_node.removeChild(node);
 						}
 					}
