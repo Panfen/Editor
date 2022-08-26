@@ -282,16 +282,21 @@ export default (props) => {
 	const getContent = () => {
 		setTimeout(() => {
 			setContent(editorRef.current.textContent)
-			const selectList = [];
+			const newSelectList = [];
 			editorRef.current.childNodes.forEach(_node => {
 				_node.childNodes.forEach(node => {
 					if (node.className === 'tag') {
 						const check = checkList.find(item => item.name === node.textContent.substr(1));
-						selectList.push(check);
+						newSelectList.push(check);
 					}
 				})
 			});
-			setSelectList([ ...selectList ]);
+			const obj = {}
+			const distinctList = newSelectList.reduce((acc, val) => {
+				obj[val.key] ? '' : obj[val.key] = true && acc.push(val);
+				return acc;
+			}, []);
+			setSelectList([ ...distinctList ]);
 		});
 	}
 
