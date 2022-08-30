@@ -121,7 +121,7 @@ export default (props) => {
 	const onBlur = (e) => {
 		const sel = window.getSelection();
 		const { anchorNode, anchorOffset } = sel;
-		const id = anchorNode?.parentElement?.id || anchorNode?.id;
+		const id = anchorNode?.parentElement?.id || anchorNode?.id || anchorNode?.lastChild?.id;
 		if (id) {
 			previousInfo.current = {
 				id,
@@ -174,18 +174,11 @@ export default (props) => {
 			var range = document.createRange();
 			// 设置选中节点的当前range
 			const node = document.getElementById(id);
-			if (node.firstChild) {
-				const offset = node.textContent.length;
-				range.setStart(node.firstChild, offset);
-				range.setEnd(node.firstChild, offset);
-				sel.removeAllRanges();
-				sel.addRange(range);
-			} else {
-				range.selectNode(node);
-				sel.removeAllRanges();
-				sel.addRange(range);
-				sel.collapseToEnd();
-			}
+			const offset = node.textContent.length;
+			range.setStart(node.firstChild || node, offset);
+			range.setEnd(node.firstChild || node, offset);
+			sel.removeAllRanges();
+			sel.addRange(range);
 		});
 	}
 
