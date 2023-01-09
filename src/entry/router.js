@@ -1,10 +1,10 @@
 import React from 'react';
 import { hashHistory, Router, Route, IndexRoute } from 'react-router';
 import Main from '../layout/main';
-import Index from '../pages/index';
-import Test from '../pages/test';
-import Test2 from '../pages/test2';
-import Test3 from '../pages/test3';
+import Index from '../pages/Index/index';
+import OldPlanEditor from '../pages/OldPlanEditor';
+import PcEditor from '../pages/PcEditor';
+import PlanEditor from '../pages/PlanEditor';
 
 function RouterConfig() {
   return (
@@ -12,8 +12,9 @@ function RouterConfig() {
       <Route path="/" component={Main}>
         <IndexRoute component={Index} />
         <Route path="index" component={Index} />
-        <Route path="test" component={Test} />
-        <Route path="test2" component={Test2} />
+        <Route path="plan-editor0" component={OldPlanEditor} />
+        <Route path="pc-editor" component={PcEditor} />
+        <Route path="plan-editor" component={PlanEditor} />
       </Route>
     </Router>
   );
